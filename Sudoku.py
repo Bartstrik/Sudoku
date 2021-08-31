@@ -1,20 +1,15 @@
 from math import floor
-
-# My first attempt at making a sudoku solver, took about 5 hours total
+import tkinter as tk
+from tkinter import ttk
 # recommended improvements are the calculate_spot functions and making GUI
 # Bart Strik
-
-
-
-
-
 
 
 class sudoku():
 
     #where board is a 2 dimensional array of integers ranging between 0 and 9, 0 means empty 
-    def __init__(self, board_in):
-        self.board = board_in
+    def __init__(self, _board):
+        self.board = _board
         self.finished = False
         return
 
@@ -64,11 +59,12 @@ class sudoku():
         return column_list
 
    
-    #this function definetly needs improvement
+    #this function definetly needs improvement, and maybe error handling aswell
     def calculate_spot(self, row, column):
-        if not self.board[row][column]:
+        #print("row = {}, column = {}".format(row, column))
+        if self.board[row][column] == 0:
             for option in self.calculate_options(row, column):
-                print(option)
+                #print(option)
                 self.board[row][column] = option
                 #recursive case, calls recursive functions
                 if column < 8 and row < 9:
@@ -76,7 +72,7 @@ class sudoku():
                 elif row < 8:
                     self.calculate_spot(row + 1, 0)
                 else:
-                    self.finished = True
+                    self.finished = True 
                 if self.finished:
                     break
             if not self.finished:
@@ -92,27 +88,66 @@ class sudoku():
 
             return
 
+class window():
+    
+    def __init__(self):
+        self.window = tk.Tk()
+        self.window.title("Swagdoku")
+        self.window.geometry("500x900")
 
+        self.entry_frame = self.create_sudoku_frame()
+        self.entry_frame.grid(column = 0, row = 0)
+        
+        return
+
+    #this function is called by the submit button
+    def submit_sudoku(self):
+
+        tk.Label(self.window, text = "result").grid(column = 0, row = 2)
+        #this can be made more efficient by removing the local board variable and parsing the values directly.
+        self.board = []
+        for i in range(9):
+            self.board.append([])
+            for j in range(9):
+                self.board[i].append(int(self.spinbox_value[j][i].get()))
+                
+        
+        
+        #parse the board to the Sudoku() class, solve the sudoku and parse back.
+        Sudoku = sudoku(self.board)
+        Sudoku.calculate_spot(0, 0)
+        self.board = Sudoku.board
+        
+        self.result_frame = self.create_sudoku_frame()
+        self.result_frame.grid(column = 0, row = 3)
+        for i in range(9):
+            for j in range(9):
+                tk.Label(self.result_frame, text = "{}".format(Sudoku.board[i][j])).grid(row = i, column = j, padx = 10, pady= 10)
+        return
+
+    def create_entry_sudoku(self):
+        self.spinbox_value = []
+
+        for i in range(9):
+            self.spinbox_value.append([])
+            for j in range(9):
+                self.spinbox_value[i].append(tk.StringVar(value = 0))
+                tk.Spinbox(self.entry_frame, from_ = 0, to = 9, textvariable = self.spinbox_value[i][j], wrap = True, width = 2).grid(row = j, column = i, padx = 10, pady= 10)
+
+        tk.Button(self.window, text = "Submit", padx = 2, command = self.submit_sudoku).grid(column = 0, row = 1)
+        return
+
+    def create_sudoku_frame(self):
+        sudoku_frame = tk.Frame(self.window)
+        for i in range(10):
+            ttk.Separator(sudoku_frame, orient="vertical").grid(column=i, row=0, rowspan=10, sticky = "nwsw")
+            ttk.Separator(sudoku_frame, orient="horizontal").grid(column=0, row=i, columnspan=10, sticky = "nwne")
+        return sudoku_frame
 
 def main():
-    board = [[0, 1, 3, 6, 4, 0, 9, 0, 2], 
-            [0, 0, 6, 9, 5, 0, 3, 0, 0],
-            [0, 5, 0, 0, 0, 0, 0, 0, 4],
-            
-            [0, 0, 0, 0, 6, 0, 7, 0, 0],
-            [3, 0, 7, 0, 8, 0, 4, 0, 5],
-            [0, 0, 2, 0, 7, 0, 0, 0, 0],
-            
-            [9, 0, 0, 0, 0, 0, 0, 7, 0],
-            [0, 0, 1, 0, 9, 7, 2, 0, 0],
-            [8, 0, 5, 0, 2, 3, 1, 6, 0]]
-
-    Sudoku = sudoku(board)
-
-    Sudoku.calculate_spot(0, 0)
-    
-    for i in Sudoku.board:
-        print(*i)
+    Window = window() 
+    Window.create_entry_sudoku()
+    Window.window.mainloop()
     return
 
 if __name__ == "__main__":
